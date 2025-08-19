@@ -1,20 +1,24 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
   <title>Mini App</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <!-- обновлённый viewport: запрет масштабирования жестами на iOS -->
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
   <style>
     :root { --safe-bottom: env(safe-area-inset-bottom, 0px); }
 
-    body {
+    /* глобально отключаем выделение/подсветку и двойной-тап-зум */
+    html, body {
       margin: 0;
+      height: 100%;
       font-family: Arial, sans-serif;
+      -webkit-user-select: none; user-select: none;
+      -webkit-touch-callout: none;
+      -webkit-tap-highlight-color: transparent;
+      touch-action: manipulation; /* отключает double-tap zoom в iOS Safari */
       background: #f0f0f0;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      height: 100vh;
+      display: flex; flex-direction: column; align-items: center;
     }
 
     section {
@@ -53,6 +57,7 @@
       width: 100%;
       max-width: 500px;
       margin: 0 auto;
+      -webkit-user-select: none; user-select: none;
     }
     canvas {
       display: block;
@@ -62,6 +67,8 @@
       border: 2px solid #333;
       border-radius: 10px;
       margin: 0 auto;
+      touch-action: none;   /* запрет pinch/пан/двойного тапа на самом канвасе */
+      outline: none;
     }
 
     #score { font-size: 22px; margin: 10px; }
@@ -73,7 +80,8 @@
       left: 50%; top: 50%;
       transform: translate(-50%, -50%);
       text-align: center;
-      pointer-events: none; /* клики проходят к кнопке */
+      pointer-events: none; /* клики проходят только к кнопке */
+      -webkit-user-select: none; user-select: none;
     }
     #gameOverText {
       font-size: 28px;
@@ -91,7 +99,7 @@
       border-radius: 8px;
       font-size: 16px;
       cursor: pointer;
-      pointer-events: auto; /* чтобы кнопка была кликабельной */
+      pointer-events: auto; /* кнопка кликабельна */
     }
   </style>
 </head>
@@ -164,6 +172,12 @@
         alert("Неверный пароль!");
       }
     }
+
+    // --------- ЗАПРЕТ ЖЕСТОВ ЗУМА/ВЫДЕЛЕНИЯ (iOS) ---------
+    document.addEventListener('gesturestart',  e => e.preventDefault());
+    document.addEventListener('gesturechange', e => e.preventDefault());
+    document.addEventListener('dblclick',      e => e.preventDefault());
+    document.addEventListener('selectstart',   e => e.preventDefault());
 
     // --------- АДАПТИВ ИГРЫ ---------
     const stage   = document.getElementById('stage');
@@ -263,7 +277,7 @@
       }
     }
 
-    // --- красивые трубы (как у тебя) ---
+    // --- красивые трубы ---
     function roundedRect(ctx, x, y, w, h, r) {
       const rr = Math.min(r, w/2, h/2);
       ctx.beginPath();
@@ -328,7 +342,7 @@
 
       if (frame % spawnEvery === 0) {
         const top = Math.random() * (VIEW_H / 2);
-        const gap = 150;                             // вертикальный зазор (как у тебя)
+        const gap = 150;                             // вертикальный зазор
         const bottom = VIEW_H - top - gap;
         pipes.push({ x: VIEW_W, width: pipeWidth, top, bottom, passed:false });
       }
@@ -364,7 +378,7 @@
 
     function loop() {
       if (gameOver) {
-        // Твои тексты
+        // твои тексты по счету
         if (score === 9) {
           overText.innerHTML = "Ты наполняешь тишину спокойствием и светом";
         } else if (score === 17) {
@@ -386,7 +400,7 @@
 
     function restartGame() { initGame(); loop(); }
 
-    // Управление: убираем двойные тапы — только pointerdown
+    // Управление: убираем двойные тапы — используем pointerdown вместо click/touchstart
     document.addEventListener("keydown", () => {
       if (!gameOver) bird.velocity = bird.lift;
     }, { passive: true });
