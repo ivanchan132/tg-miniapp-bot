@@ -264,10 +264,14 @@
     }
 
     function drawBird() {
-      ctx.font = "30px Arial";
-      ctx.textAlign = 'left';
-      ctx.fillText("💛", bird.x - 15, bird.y + 10);
-    }
+  ctx.save();
+  ctx.font = `${bird.height}px Apple Color Emoji, Segoe UI Emoji, Noto Color Emoji, Arial`;
+  ctx.textAlign = 'left';
+  ctx.textBaseline = 'alphabetic';
+  ctx.fillStyle = '#000000';      // сброс цвета, чтобы эмоджи оставалось жёлтым
+  ctx.fillText("💛", bird.x - Math.floor(bird.width/2), bird.y + Math.floor(bird.height/3));
+  ctx.restore();
+}
     function updateBird() {
       bird.velocity += bird.gravity;
       bird.y += bird.velocity;
