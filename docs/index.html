@@ -85,7 +85,7 @@
     }
     #gameOverText {
       font-size: 28px;
-      color: #ff69b4;
+      color: yellow;
       margin-bottom: 15px;
       line-height: 1.4;
       text-shadow: 0 2px 2px rgba(0,0,0,.3);
@@ -401,16 +401,16 @@ function closeModal() {
       if (gameOver) {
         // твои тексты по счету
         if (score === 9) {
-          overText.innerHTML = "Ты наполняешь тишину спокойствием и светом";
-        } else if (score === 17) {
-          overText.innerHTML = "В твоих улыбках свет рассвета";
-        } else if (score === 21) {
-          overText.innerHTML = "Ты украшаешь собой весь мир";
-        } else if (score === 32) {
-          overText.innerHTML = "Ты придаёшь моментам особую ценность";
-        } else {
-          overText.innerHTML = "Отлично! <br> Попробуем ещё?";
-        }
+  overText.innerHTML = "<span style='color:#ff69b4'>Ты наполняешь тишину спокойствием и светом</span>";
+} else if (score === 17) {
+  overText.innerHTML = "<span style='color:#ff69b4'>В твоих улыбках свет рассвета</span>";
+} else if (score === 21) {
+  overText.innerHTML = "<span style='color:#ff69b4'>Ты украшаешь собой весь мир</span>";
+} else if (score === 32) {
+  overText.innerHTML = "<span style='color:#ff69b4'>Ты придаёшь моментам особую ценность</span>";
+} else {
+  overText.innerHTML = "Отлично! <br> Попробуем ещё?";
+}
         overBox.style.display = "block";
         return;
       }
