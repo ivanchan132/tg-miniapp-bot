@@ -1,61 +1,71 @@
 import os
 import logging
-from telegram import Update, InlineKeyboardMarkup, InlineKeyboardButton, WebAppInfo, MenuButtonWebApp
+from telegram import (
+    Update, InlineKeyboardMarkup, InlineKeyboardButton,
+    WebAppInfo, MenuButtonWebApp
+)
 from telegram.ext import Application, CommandHandler, ContextTypes
 
-# === НАСТРОЙКИ ===
-TOKEN = os.getenv("TOKEN", "").strip()  # токен задаёшь на Railway в Variables
-MINI_APP_URL = os.getenv("MINI_APP_URL", "https://example.com/")  # URL мини-аппа
-OWNER_ID = int(os.getenv("OWNER_ID", "0") or 0)  # твой Telegram ID, чтобы бот слал тебе уведомления
+# ====== НАСТРОЙКИ И ОКРУЖЕНИЕ ======
+TOKEN        = os.getenv("TOKEN", "").strip()                     # токен бота
+MINI_APP_URL = os.getenv("MINI_APP_URL", "https://example.com/")  # URL твоего мини-аппа
+ADMIN_ID     = int(os.getenv("ADMIN_ID", "1031115105") or 0)               # твой Telegram ID (кому слать уведомления)
 
-# === ЛОГИ ===
-logging.basicConfig(format="%(asctime)s | %(levelname)s | %(message)s", level=logging.INFO)
+# ====== ЛОГИ ======
+logging.basicConfig(
+    format="%(asctime)s | %(levelname)s | %(message)s",
+    level=logging.INFO
+)
 log = logging.getLogger("bot")
 
-# === Хендлер /start ===
-async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    user = update.effective_user
-    user_id = user.id
-    username = f"@{user.username}" if user.username else user.first_name
 
-    # Отправляем кнопку с мини-аппом
+async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Команда /start: показать кнопку мини-аппа и прислать админу ID пользователя."""
+    user = update.effective_user
+    chat_id = update.effective_chat.id
+
+    # Кнопка для открытия мини-аппа
     kb = InlineKeyboardMarkup(
         [[InlineKeyboardButton("Open Gift", web_app=WebAppInfo(url=MINI_APP_URL))]]
     )
-    await update.message.reply_text("Привет! Открой мини-апп 🎁", reply_markup=kb)
+    await context.bot.send_message(chat_id=chat_id, text="Привет! Открой мини-апп 🎁", reply_markup=kb)
 
-    # Уведомляем владельца
-    if OWNER_ID:
+    # Присылаем админу ID пользователя, который запустил бота
+    if ADMIN_ID:
+        username = f"@{user.username}" if user and user.username else f"{user.first_name or ''} {user.last_name or ''}".strip()
         await context.bot.send_message(
-            chat_id=OWNER_ID,
-            text=f"Новый запуск бота!\nID: {user_id}\nПользователь: {username}"
+            chat_id=ADMIN_ID,
+            text=f"Новый запуск бота\nID: {user.id}\nПользователь: {username or '—'}"
         )
-
-    log.info("User started bot: id=%s, name=%s", user_id, username)
+    log.info("User started: id=%s, username=%s", user.id, user.username)
 
 
 async def on_startup(app: Application):
-    # снимаем webhook
+    """Отключаем webhook и ставим кнопку мини-аппа в меню (⋯)."""
     try:
         await app.bot.delete_webhook(drop_pending_updates=True)
-    except Exception:
-        pass
+        log.info("Webhook deleted.")
+    except Exception as e:
+        log.warning("Webhook delete failed: %s", e)
 
-    # ставим кнопку в меню (⋯)
     try:
         await app.bot.set_chat_menu_button(
             menu_button=MenuButtonWebApp(text="Open Gift", web_app=WebAppInfo(url=MINI_APP_URL))
         )
-    except Exception:
-        pass
+        log.info("Menu button set.")
+    except Exception as e:
+        log.warning("Menu button set failed: %s", e)
 
 
 def main():
     if not TOKEN:
         raise RuntimeError("TOKEN пуст. Задай переменную окружения TOKEN.")
     app = Application.builder().token(TOKEN).build()
+
     app.add_handler(CommandHandler("start", start))
     app.post_init = on_startup
+
+    log.info("Starting polling…")
     app.run_polling(allowed_updates=Update.ALL_TYPES)
 
 
