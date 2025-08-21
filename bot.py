@@ -13,7 +13,7 @@ log = logging.getLogger("bot")
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     kb = InlineKeyboardMarkup(
-        [[InlineKeyboardButton("🚀 Открыть мини-апп", web_app=WebAppInfo(url=MINI_APP_URL))]]
+        [[InlineKeyboardButton("Open Gift", web_app=WebAppInfo(url=MINI_APP_URL))]]
     )
     text = "Привет! 👋 Жми кнопку, чтобы открыть мини-апп."
     if update.message:
@@ -32,7 +32,7 @@ async def on_startup(app: Application):
     # ставим кнопку мини-аппа в меню чата (⋯)
     try:
         await app.bot.set_chat_menu_button(
-            menu_button=MenuButtonWebApp(text="Открыть мини-апп", web_app=WebAppInfo(url=MINI_APP_URL))
+            menu_button=MenuButtonWebApp(text="Open Gift", web_app=WebAppInfo(url=MINI_APP_URL))
         )
     except Exception as e:
         log.warning("Menu button set failed: %s", e)
